@@ -22,9 +22,9 @@ public class AtmDb {
         return banknotes;
     }
 
-    public void removeBanknotes(final int type, final int removedAmount) {
+    public void updateAtmBanknotes(final int type, final int amount) {
         Banknote banknote = getBanknotes().get(type);
-        getBanknotes().put(type, new Banknote(type, banknote.getAmount() - removedAmount));
+        getBanknotes().put(type, new Banknote(type, banknote.getAmount() + amount));
     }
 
     /**
@@ -35,7 +35,7 @@ public class AtmDb {
      * @return a map of banknotes.
      * @author Atila Ekimci
      */
-    private static Map<Integer, Banknote> fillUpBankAtm() {
+    public static Map<Integer, Banknote> fillUpBankAtm() {
         return new HashMap<Integer, Banknote>() {
             {
                 put(5, new Banknote(5, 5));

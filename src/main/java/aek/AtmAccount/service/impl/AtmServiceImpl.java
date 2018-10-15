@@ -35,7 +35,7 @@ public class AtmServiceImpl implements AtmService {
      */
     @Override
     public String replenish() {
-        atmDb = new AtmDb();
+        atmDb.fillUpBankAtm();
         logger.info("ATM replenished!Banknote types and amounts are:" + atmDb.toString());
         return "ATM replenished!";
     }
@@ -69,7 +69,7 @@ public class AtmServiceImpl implements AtmService {
 
             bankNotesToGive.replace(5, bankNotesToGive.get(5) + 1);
             restOfAmount -= (5 * 1);
-            atmDb.removeBanknotes(5, 1);
+            atmDb.updateAtmBanknotes(5, -1);
 
             for (Map.Entry<Integer, Integer> entry : bankNotesToGive.entrySet()) {
                 int entryBanknoteType = entry.getKey();
@@ -81,12 +81,13 @@ public class AtmServiceImpl implements AtmService {
                     if (availableBankNoteAmount > 0) {
                         bankNotesToGive.replace(entryBanknoteType, entryBanknoteAmount + availableBankNoteAmount);
                         restOfAmount -= (entryBanknoteType * availableBankNoteAmount);
-                        atmDb.removeBanknotes(entryBanknoteType, availableBankNoteAmount);
+                        atmDb.updateAtmBanknotes(entryBanknoteType, -1 * availableBankNoteAmount);
                     }
                 }
             }
 
             if (restOfAmount > 0) {
+                updateAtmBanknoteCapacity(bankNotesToGive);
                 logger.error("There is not enough banknotes for withdrawal in ATM! "
                         + "Withdraw request is cancelled!");
                 throw new AtmException("There is not enough banknotes for withdrawal in ATM! "
@@ -109,7 +110,7 @@ public class AtmServiceImpl implements AtmService {
      * @param type   banknote type.
      * @param amount amount of that banknote type.
      * @return returns maximum possible amount of banknotes
-     *         by comparing atm's banknote possibility and the requested amount.
+     * by comparing atm's banknote possibility and the requested amount.
      */
     private int checkAtmBanknoteCapacity(final int type, final int amount) {
         if (atmDb.getBanknotes().containsKey(type)) {
@@ -125,6 +126,17 @@ public class AtmServiceImpl implements AtmService {
             }
         }
         return 0;
+    }
+
+    /**
+     * Puts banknotes back to ATM banknotes deposit.
+     *
+     * @param bankNotesToGive list of banknotes.
+     */
+    private void updateAtmBanknoteCapacity(final Map<Integer, Integer> bankNotesToGive) {
+        bankNotesToGive.forEach((type, amount) ->
+                atmDb.updateAtmBanknotes(type, amount)
+        );
     }
 
 }
